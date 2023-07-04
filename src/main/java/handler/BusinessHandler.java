@@ -88,6 +88,8 @@ public class BusinessHandler extends SimpleChannelInboundHandler<TextWebSocketFr
 
     private void executeAndFlush(BaseWebSocketController controller) {
         String result = controller.execute();
-        controller.session().sendMessage(result);
+        if (result != null || controller.sendNullMsg()) {
+            controller.session().sendMessage(result);
+        }
     }
 }

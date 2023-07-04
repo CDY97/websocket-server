@@ -19,4 +19,6 @@ public @interface WebSocketController {
 
     TimeUnit unit() default TimeUnit.MILLISECONDS;
 
+    boolean sendNullMsg() default false;
+
 }

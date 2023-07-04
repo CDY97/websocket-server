@@ -14,6 +14,8 @@ public abstract class BaseWebSocketController implements InitializingBean, Sched
 
     private TimeUnit unit;
 
+    private boolean sendNullMsg;
+
     private void setSession(Session session) {
         this.session = session;
     }
@@ -30,11 +32,16 @@ public abstract class BaseWebSocketController implements InitializingBean, Sched
         return this.unit;
     }
 
+    public boolean sendNullMsg() {
+        return this.sendNullMsg;
+    }
+
     @Override
     public void afterPropertiesSet() throws Exception {
         WebSocketController annotation = this.getClass().getAnnotation(WebSocketController.class);
         this.period = annotation.period();
         this.unit = annotation.unit();
+        this.sendNullMsg = annotation.sendNullMsg();
         ControllerMap.registController(dealUrl(annotation.url()), this);
     }
 
