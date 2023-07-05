@@ -1,7 +1,6 @@
 package handler;
 
 import bootstrap.WebSocketExecutorContext;
-import com.alibaba.fastjson.JSONObject;
 import controller.BaseWebSocketController;
 import controller.ControllerMap;
 import io.netty.channel.ChannelHandler;
@@ -77,13 +76,17 @@ public class BusinessHandler extends SimpleChannelInboundHandler<TextWebSocketFr
         NioEventLoopGroup taskScheduleGroup = WebSocketExecutorContext.getInstance().taskScheduleGroup();
         // 根据url创建新的controller实例，注入session
         BaseWebSocketController controller = ControllerMap.getControllerByUrl(session);
-        // 调用prepare方法，同步阻塞
-        taskExecutor.submit(() -> controller.prepare(text)).get();
-        // 创建定时任务
-        ScheduledFuture scheduledFuture = taskScheduleGroup.scheduleAtFixedRate(() -> executeAndFlush(controller),
-                0, controller.period(), controller.unit());
-        // 定时任务注册到session中，并且停止之前的定时任务
-        session.registExecuteTask(scheduledFuture);
+        // 异步调用prepare，创建定时任务
+        taskExecutor.submit(() -> {
+            // 调用一次prepare，触发初始化方法准备数据并传参
+            controller.prepare(text);
+            // 创建定时任务
+            ScheduledFuture scheduledFuture = taskScheduleGroup.scheduleAtFixedRate(() -> {
+                taskExecutor.execute(() -> executeAndFlush(controller));
+            }, 0, controller.period(), controller.unit());
+            // 定时任务注册到session中，并且停止之前的定时任务
+            session.registExecuteTask(scheduledFuture);
+        });
     }
 
     private void executeAndFlush(BaseWebSocketController controller) {

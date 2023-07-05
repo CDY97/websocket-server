@@ -15,7 +15,7 @@ public class WebSocketConfig {
             100,
             10,
             TimeUnit.SECONDS,
-            new LinkedBlockingQueue<>(100),
+            new LinkedBlockingQueue<>(1000),
             Executors.defaultThreadFactory(),
             new ThreadPoolExecutor.DiscardOldestPolicy());
     private static int port;
