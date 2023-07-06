@@ -1,5 +1,6 @@
 package bootstrap;
 
+import io.netty.channel.DefaultEventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.util.concurrent.Future;
 
@@ -10,8 +11,8 @@ public class WebSocketExecutorContext {
     private static volatile WebSocketExecutorContext instance;
     private NioEventLoopGroup bossGroup;
     private NioEventLoopGroup msgHandleGroup;
-    private NioEventLoopGroup heartBeatGroup;
-    private NioEventLoopGroup taskScheduleGroup;
+    private DefaultEventLoopGroup heartBeatGroup;
+    private DefaultEventLoopGroup taskScheduleGroup;
     private ThreadPoolExecutor taskExecutor;
 
     private WebSocketExecutorContext() {
@@ -21,8 +22,8 @@ public class WebSocketExecutorContext {
         WebSocketExecutorContext instance = getInstance();
         instance.bossGroup = new NioEventLoopGroup(WebSocketConfig.BossThreads());
         instance.msgHandleGroup = new NioEventLoopGroup(WebSocketConfig.MsgHandleThreads());
-        instance.heartBeatGroup = new NioEventLoopGroup(WebSocketConfig.HeartBeatThreads());
-        instance.taskScheduleGroup = new NioEventLoopGroup(WebSocketConfig.TaskScheduleThreads());
+        instance.heartBeatGroup = new DefaultEventLoopGroup(WebSocketConfig.HeartBeatThreads());
+        instance.taskScheduleGroup = new DefaultEventLoopGroup(WebSocketConfig.TaskScheduleThreads());
         instance.taskExecutor = WebSocketConfig.TaskExecutor();
         return instance;
     }
@@ -46,11 +47,11 @@ public class WebSocketExecutorContext {
         return this.msgHandleGroup;
     }
 
-    public NioEventLoopGroup heartBeatGroup() {
+    public DefaultEventLoopGroup heartBeatGroup() {
         return this.heartBeatGroup;
     }
 
-    public NioEventLoopGroup taskScheduleGroup() {
+    public DefaultEventLoopGroup taskScheduleGroup() {
         return this.taskScheduleGroup;
     }
 

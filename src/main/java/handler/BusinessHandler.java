@@ -5,8 +5,8 @@ import controller.BaseWebSocketController;
 import controller.ControllerMap;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.DefaultEventLoopGroup;
 import io.netty.channel.SimpleChannelInboundHandler;
-import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 import io.netty.util.concurrent.ScheduledFuture;
 import io.netty.util.internal.logging.InternalLogger;
@@ -73,7 +73,7 @@ public class BusinessHandler extends SimpleChannelInboundHandler<TextWebSocketFr
      */
     private void startScheduledTask(WebSocketSession session, String text) throws CloneNotSupportedException, ExecutionException, InterruptedException {
         ThreadPoolExecutor taskExecutor = WebSocketExecutorContext.getInstance().taskExecutor();
-        NioEventLoopGroup taskScheduleGroup = WebSocketExecutorContext.getInstance().taskScheduleGroup();
+        DefaultEventLoopGroup taskScheduleGroup = WebSocketExecutorContext.getInstance().taskScheduleGroup();
         // 根据url创建新的controller实例，注入session
         BaseWebSocketController controller = ControllerMap.getControllerByUrl(session);
         // 异步调用prepare，创建定时任务
