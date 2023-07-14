@@ -16,28 +16,28 @@ public abstract class BaseWebSocketController implements InitializingBean, Sched
 
     private boolean sendNullMsg;
 
-    private void setSession(Session session) {
-        this.session = session;
-    }
-
-    public Session session() {
+    @Override
+    public final Session session() {
         return this.session;
     }
 
-    public long period() {
+    @Override
+    public final long period() {
         return this.period;
     }
 
-    public TimeUnit unit() {
+    @Override
+    public final TimeUnit unit() {
         return this.unit;
     }
 
-    public boolean sendNullMsg() {
+    @Override
+    public final boolean sendNullMsg() {
         return this.sendNullMsg;
     }
 
     @Override
-    public void afterPropertiesSet() throws Exception {
+    public final void afterPropertiesSet() throws Exception {
         WebSocketController annotation = this.getClass().getAnnotation(WebSocketController.class);
         this.period = annotation.period();
         this.unit = annotation.unit();
@@ -45,9 +45,10 @@ public abstract class BaseWebSocketController implements InitializingBean, Sched
         ControllerMap.registController(dealUrl(annotation.url()), this);
     }
 
-    public BaseWebSocketController newInstance(Session session) throws CloneNotSupportedException {
+    @Override
+    public final BaseWebSocketController newInstance(Session session) throws CloneNotSupportedException {
         BaseWebSocketController controller = (BaseWebSocketController) super.clone();
-        controller.setSession(session);
+        controller.session = session;
         return controller;
     }
 
