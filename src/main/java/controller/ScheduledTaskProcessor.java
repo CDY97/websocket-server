@@ -18,5 +18,7 @@ public interface ScheduledTaskProcessor {
 
     boolean sendNullMsg();
 
+    boolean executeAfterConnected();
+
     BaseWebSocketController newInstance(Session session) throws CloneNotSupportedException;
 }

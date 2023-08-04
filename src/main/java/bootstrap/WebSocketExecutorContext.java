@@ -1,6 +1,7 @@
 package bootstrap;
 
 import io.netty.channel.DefaultEventLoopGroup;
+import io.netty.channel.EventLoopGroup;
 import io.netty.channel.epoll.EpollEventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.util.concurrent.Future;
@@ -10,8 +11,8 @@ import java.util.concurrent.ThreadPoolExecutor;
 public class WebSocketExecutorContext {
 
     private static volatile WebSocketExecutorContext instance;
-    private EpollEventLoopGroup bossGroup;
-    private EpollEventLoopGroup msgHandleGroup;
+    private EventLoopGroup bossGroup;
+    private EventLoopGroup msgHandleGroup;
     private DefaultEventLoopGroup heartBeatGroup;
     private DefaultEventLoopGroup taskScheduleGroup;
     private ThreadPoolExecutor taskExecutor;
@@ -21,8 +22,13 @@ public class WebSocketExecutorContext {
 
     static WebSocketExecutorContext init() {
         WebSocketExecutorContext instance = getInstance();
-        instance.bossGroup = new EpollEventLoopGroup(WebSocketConfig.BossThreads());
-        instance.msgHandleGroup = new EpollEventLoopGroup(WebSocketConfig.MsgHandleThreads());
+        if (System.getProperty("os.name").startsWith("Linux")) {
+            instance.bossGroup = new EpollEventLoopGroup(WebSocketConfig.BossThreads());
+            instance.msgHandleGroup = new EpollEventLoopGroup(WebSocketConfig.MsgHandleThreads());
+        } else {
+            instance.bossGroup = new NioEventLoopGroup(WebSocketConfig.BossThreads());
+            instance.msgHandleGroup = new NioEventLoopGroup(WebSocketConfig.MsgHandleThreads());
+        }
         instance.heartBeatGroup = new DefaultEventLoopGroup(WebSocketConfig.HeartBeatThreads());
         instance.taskScheduleGroup = new DefaultEventLoopGroup(WebSocketConfig.TaskScheduleThreads());
         instance.taskExecutor = WebSocketConfig.TaskExecutor();
@@ -40,11 +46,11 @@ public class WebSocketExecutorContext {
         return instance;
     }
 
-    public EpollEventLoopGroup bossGroup() {
+    public EventLoopGroup bossGroup() {
         return this.bossGroup;
     }
 
-    public EpollEventLoopGroup msgHandleGroup() {
+    public EventLoopGroup msgHandleGroup() {
         return this.msgHandleGroup;
     }
 

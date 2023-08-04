@@ -21,4 +21,6 @@ public @interface WebSocketController {
 
     boolean sendNullMsg() default false;
 
+    boolean executeAfterConnected() default false;
+
 }
