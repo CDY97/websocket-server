@@ -16,6 +16,8 @@ public abstract class BaseWebSocketController implements InitializingBean, Sched
 
     private boolean sendNullMsg;
 
+    private boolean executeAfterConnected;
+
     @Override
     public final Session session() {
         return this.session;
@@ -37,11 +39,17 @@ public abstract class BaseWebSocketController implements InitializingBean, Sched
     }
 
     @Override
+    public final boolean executeAfterConnected() {
+        return this.executeAfterConnected;
+    }
+
+    @Override
     public final void afterPropertiesSet() throws Exception {
         WebSocketController annotation = this.getClass().getAnnotation(WebSocketController.class);
         this.period = annotation.period();
         this.unit = annotation.unit();
         this.sendNullMsg = annotation.sendNullMsg();
+        this.executeAfterConnected = annotation.executeAfterConnected();
         ControllerMap.registController(dealUrl(annotation.url()), this);
     }
 

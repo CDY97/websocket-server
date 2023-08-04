@@ -1,21 +1,13 @@
 package handler;
 
-import bootstrap.WebSocketExecutorContext;
-import controller.BaseWebSocketController;
-import controller.ControllerMap;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.DefaultEventLoopGroup;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
-import io.netty.util.concurrent.ScheduledFuture;
 import io.netty.util.internal.logging.InternalLogger;
 import io.netty.util.internal.logging.InternalLoggerFactory;
 import session.SessionContext;
 import session.WebSocketSession;
-
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ThreadPoolExecutor;
 
 /**
  * @author chengengwei
@@ -30,9 +22,8 @@ public class BusinessHandler extends SimpleChannelInboundHandler<TextWebSocketFr
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, TextWebSocketFrame msg) {
         try {
-            WebSocketSession session = SessionContext.getSession(ctx.channel().id().asShortText());
             String text = msg.text();
-            startScheduledTask(session, text);
+            SessionContext.startScheduledTask(ctx.channel().id().asShortText(), text, false);
         } catch (Exception e) {
             logger.error(e);
             try {
@@ -61,38 +52,5 @@ public class BusinessHandler extends SimpleChannelInboundHandler<TextWebSocketFr
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
         logger.error(cause);
         ctx.close();
-    }
-
-    /**
-     * 创建定时任务
-     * @param session
-     * @param text
-     * @throws CloneNotSupportedException
-     * @throws ExecutionException
-     * @throws InterruptedException
-     */
-    private void startScheduledTask(WebSocketSession session, String text) throws CloneNotSupportedException, ExecutionException, InterruptedException {
-        ThreadPoolExecutor taskExecutor = WebSocketExecutorContext.getInstance().taskExecutor();
-        DefaultEventLoopGroup taskScheduleGroup = WebSocketExecutorContext.getInstance().taskScheduleGroup();
-        // 根据url创建新的controller实例，注入session
-        BaseWebSocketController controller = ControllerMap.getControllerByUrl(session);
-        // 异步调用prepare，创建定时任务
-        taskExecutor.submit(() -> {
-            // 调用一次prepare，触发初始化方法准备数据并传参
-            controller.prepare(text);
-            // 创建定时任务
-            ScheduledFuture scheduledFuture = taskScheduleGroup.scheduleAtFixedRate(() -> {
-                taskExecutor.execute(() -> executeAndFlush(controller));
-            }, 0, controller.period(), controller.unit());
-            // 定时任务注册到session中，并且停止之前的定时任务
-            session.registExecuteTask(scheduledFuture);
-        });
-    }
-
-    private void executeAndFlush(BaseWebSocketController controller) {
-        String result = controller.execute();
-        if (result != null || controller.sendNullMsg()) {
-            controller.session().sendMessage(result);
-        }
     }
 }
