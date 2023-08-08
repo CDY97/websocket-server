@@ -4,6 +4,7 @@ import io.netty.channel.DefaultEventLoopGroup;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.epoll.EpollEventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.util.concurrent.DefaultThreadFactory;
 import io.netty.util.concurrent.Future;
 
 import java.util.concurrent.ThreadPoolExecutor;
@@ -23,14 +24,20 @@ public class WebSocketExecutorContext {
     static WebSocketExecutorContext init() {
         WebSocketExecutorContext instance = getInstance();
         if (System.getProperty("os.name").startsWith("Linux")) {
-            instance.bossGroup = new EpollEventLoopGroup(WebSocketConfig.BossThreads());
-            instance.msgHandleGroup = new EpollEventLoopGroup(WebSocketConfig.MsgHandleThreads());
+            instance.bossGroup = new EpollEventLoopGroup(WebSocketConfig.BossThreads(),
+                    new DefaultThreadFactory("ws-netty-boss"));
+            instance.msgHandleGroup = new EpollEventLoopGroup(WebSocketConfig.MsgHandleThreads(),
+                    new DefaultThreadFactory("ws-netty-msgHandle"));
         } else {
-            instance.bossGroup = new NioEventLoopGroup(WebSocketConfig.BossThreads());
-            instance.msgHandleGroup = new NioEventLoopGroup(WebSocketConfig.MsgHandleThreads());
+            instance.bossGroup = new NioEventLoopGroup(WebSocketConfig.BossThreads(),
+                    new DefaultThreadFactory("ws-netty-boss"));
+            instance.msgHandleGroup = new NioEventLoopGroup(WebSocketConfig.MsgHandleThreads(),
+                    new DefaultThreadFactory("ws-netty-msgHandle"));
         }
-        instance.heartBeatGroup = new DefaultEventLoopGroup(WebSocketConfig.HeartBeatThreads());
-        instance.taskScheduleGroup = new DefaultEventLoopGroup(WebSocketConfig.TaskScheduleThreads());
+        instance.heartBeatGroup = new DefaultEventLoopGroup(WebSocketConfig.HeartBeatThreads(),
+                new DefaultThreadFactory("ws-netty-heartBeat"));
+        instance.taskScheduleGroup = new DefaultEventLoopGroup(WebSocketConfig.TaskScheduleThreads(),
+                new DefaultThreadFactory("ws-netty-schedule"));
         instance.taskExecutor = WebSocketConfig.TaskExecutor();
         return instance;
     }

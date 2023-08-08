@@ -1,9 +1,7 @@
 package bootstrap;
 
-import java.util.concurrent.Executors;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class WebSocketConfig {
     private static int bossThreads = 1;
@@ -16,7 +14,18 @@ public class WebSocketConfig {
             10,
             TimeUnit.SECONDS,
             new LinkedBlockingQueue<>(1000),
-            Executors.defaultThreadFactory(),
+            new ThreadFactory() {
+                final AtomicInteger threadNumber = new AtomicInteger();
+                @Override
+                public Thread newThread(Runnable r) {
+                    Thread t = new Thread(r, "ws-netty-executor-" + threadNumber.incrementAndGet());
+                    if (t.isDaemon())
+                        t.setDaemon(false);
+                    if (t.getPriority() != Thread.NORM_PRIORITY)
+                        t.setPriority(Thread.NORM_PRIORITY);
+                    return t;
+                }
+            },
             new ThreadPoolExecutor.DiscardOldestPolicy());
     private static int port;
     private static long heartBeatPeriod = 10;
@@ -60,6 +69,9 @@ public class WebSocketConfig {
     }
 
     static void setTaskExecutor(ThreadPoolExecutor taskExecutor) {
+        if (WebSocketConfig.taskExecutor != null) {
+            WebSocketConfig.taskExecutor.shutdown();
+        }
         WebSocketConfig.taskExecutor = taskExecutor;
     }
 
