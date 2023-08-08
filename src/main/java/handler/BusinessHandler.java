@@ -7,7 +7,6 @@ import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 import io.netty.util.internal.logging.InternalLogger;
 import io.netty.util.internal.logging.InternalLoggerFactory;
 import session.SessionContext;
-import session.WebSocketSession;
 
 /**
  * @author chengengwei
