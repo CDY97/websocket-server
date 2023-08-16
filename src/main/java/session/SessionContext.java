@@ -19,22 +19,6 @@ public class SessionContext {
 
     private static final Map<String, WebSocketSession> SessionContext = new ConcurrentHashMap<>();
 
-    private static final ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
-
-    static {
-        executorService.scheduleAtFixedRate(() -> {
-            Iterator<Map.Entry<String, WebSocketSession>> iterator = SessionContext.entrySet().iterator();
-            while (iterator.hasNext()) {
-                Map.Entry<String, WebSocketSession> entry = iterator.next();
-                WebSocketSession session = entry.getValue();
-                if (session.heartBeatCount() > 5) {
-                    session.close();
-                    iterator.remove();
-                }
-            }
-        }, 0, 5, TimeUnit.SECONDS);
-    }
-
     public static void cancel(String sessionId) {
         WebSocketSession session = SessionContext.remove(sessionId);
         if (session != null) {
